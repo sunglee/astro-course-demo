@@ -1,0 +1,64 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import CategoryList from "../../components/CategoryList.astro";
+import H1 from "../../components/H1.astro";
+import Main from "../../components/Main.astro";
+import Pagination from "../../components/Pagination.astro";
+import PostList from "../../components/PostList.astro";
+import Layout from "../../layouts/Layout.astro";
+
+export const getStaticPaths = async () => {
+  const posts = await getCollection("posts");
+  const allCategories = posts.flatMap((post) => post.data.categories);
+  const categories = [...new Set(allCategories)];
+
+  const paths = categories.map((category) => {
+    const postsByCategory = posts.filter((post) =>
+      post.data.categories.includes(category)
+    );
+    return {
+      params: {
+        slug: category,
+      },
+      props: {
+        category,
+        posts: postsByCategory,
+      },
+    };
+  });
+
+  return paths;
+};
+
+type Props = {
+  category: string;
+  posts: CollectionEntry<"posts">[];
+};
+
+const { category, posts } = Astro.props;
+---
+
+<Layout
+  title="Blog - Rhythm Nation"
+  description="Read and learn from Music Producers and Enthusiasts"
+>
+  <Main>
+    <H1 text="Rhythm Nation Blog" />
+    <p class="text-zinc-900 text-2xl mb-24 max-sm:mb-14">
+      Join the Community and learn from Music Producers and Enthusiasts
+    </p>
+    <div
+      class="grid grid-cols-[auto,1fr] gap-x-14 gap-y-3 mb-16 max-lg:grid-cols-1"
+    >
+      <h2 class="font-bold text-5xl text-teal-900">Tags</h2>
+      <CategoryList categories={[category]} />
+    </div>
+    <div class="mb-12">
+      <Pagination nextUrl="/blog/2" />
+    </div>
+    <PostList posts={posts} />
+    <div class="mb-36">
+      <Pagination nextUrl="/blog/2" />
+    </div>
+  </Main>
+</Layout>
